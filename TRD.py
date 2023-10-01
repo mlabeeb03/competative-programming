@@ -453,6 +453,76 @@ def count_subarrays_with_given_xor(a, target):
         occ[x] += 1
     return c
 
+def sqrt_decomposition(arr, bin):
+    n = len(arr)
+    segment_size = int(n**0.5) + 1
+    xor_segments = []
+    zero_cor = []
+    one_xor = []
+    for i in range(n):
+        if i % segment_size == 0:
+            xor_segments.append([])
+            zero_cor.append(0)
+            one_xor.append(0)
+        xor_segments[-1].append(arr[i])
+        if bin[i] == 0:
+            zero_cor[-1] ^= arr[i]
+        else:
+            one_xor[-1] ^= arr[i]
+    return xor_segments, zero_cor, one_xor
+
+def update(n, arr, zero, one, bin, l, r):
+    segment_size = int(n**0.5) + 1
+    rightmost_segment = r // segment_size
+    while l <= r:
+        segment_number = l // segment_size
+        position_within_segment = l % segment_size
+
+        if position_within_segment == 0 and segment_number < rightmost_segment:
+            zero[segment_number], one[segment_number] = (
+                one[segment_number],
+                zero[segment_number],
+            )
+            next_segment_start = (segment_number + 1) * segment_size
+            l = next_segment_start
+        else:
+            zero[segment_number] ^= arr[segment_number][position_within_segment]
+            one[segment_number] ^= arr[segment_number][position_within_segment]
+            l += 1
+
+def KMP(w, t):
+    if w == "":
+        return 0
+    lps = [0] * len(w)
+    m, i = 0, 1
+    while i < len(w):
+        if w[m] == w[i]:
+            lps[i] = m + 1
+            m += 1
+            i += 1
+        else:
+            if m == 0:
+                lps[i] = 0
+                i += 1
+            else:
+                m = lps[m - 1]
+    
+    i = 0 # for t
+    j = 0 # for w
+    occurrences = []
+    while i < len(t):
+        if w[j] == t[i]:
+            i, j = i + 1, j + 1
+        else:
+            if j == 0:
+                i += 1
+            else:
+                j = lps[j - 1]
+        if j == len(w):
+            occurrences.append(i - len(w))
+            j = lps[j - 1]
+    return occurrences
+
 
 # ---------- SUBSTRINGS ----------
 
@@ -460,7 +530,7 @@ def count_subarrays_with_given_xor(a, target):
 # Longest increasing subsequence in nlgn
 from bisect import bisect_left
 class Solution:
-    def lengthOfLIS(self, nums: List[int]) -> int:
+    def lengthOfLIS(nums):
         ans = [nums[0]]
         for i in range(1, len(nums)):
             if nums[i] > ans[-1]:
