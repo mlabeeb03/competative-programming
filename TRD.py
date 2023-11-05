@@ -26,19 +26,65 @@ def bootstrap(f, stack=[]):
                     to = stack[-1].send(to)
             return to
     return wrappedfunc
-# example
-@bootstrap
-def dfs(visited, graph, node, arr, brr, ans):
-    if node not in visited:
-        visited.add(node)
-        for neighbour in graph[node]:
-            yield dfs(visited, graph, neighbour[0], arr, brr, ans)
-    arr.pop()
-    brr.pop()
-    yield
+
+# CACHE FOR OPTIMIZED RECURSION
+
+from functools import cache
+@cache # write this on top of function name
 
 
 # ---------- GRAPH ----------
+
+# GET ALL CYCLES IN GRAPH
+def dfs_cycle(graph, u, p, color, par, cycles, cyclenumber):
+    # already (completely) visited vertex.
+    if color[u] == 2:
+        yield
+
+    # seen vertex, but was not
+    # completely visited -> cycle detected.
+    # backtrack based on parents to
+    # find the complete cycle.
+    if color[u] == 1:
+        v = []
+        cur = p
+        v.append(cur)
+
+        # backtrack the vertex which are
+        # in the current cycle thats found
+        while cur != u:
+            cur = par[cur]
+            v.append(cur)
+        cycles[cyclenumber] = v
+        cyclenumber += 1
+
+        yield
+
+    par[u] = p
+
+    # partially visited.
+    color[u] = 1
+
+    # simple dfs on graph
+    for v in graph[u]:
+        # if it has not been visited previously
+        if v == par[u]:
+            continue
+        yield dfs_cycle(graph, v, u, color, par, cycles, cyclenumber)
+
+    # completely visited.
+    color[u] = 2
+    yield
+n = int(input())
+graph = [[] for i in range(n + 1)]
+color = [0] * (n + 1)
+par = [0] * (n + 1)
+cycles = [[] for i in range(n + 1)]
+for i in range(n):
+    x, y = [int(i) for i in input().split()]
+    graph[x].append(y)
+    graph[y].append(x)
+dfs_cycle(graph, 1, 0, color, par, cycles, 0)
 
 
 # UNION FIND(DSU)
