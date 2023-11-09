@@ -37,21 +37,12 @@ from functools import cache
 
 # GET ALL CYCLES IN GRAPH
 def dfs_cycle(graph, u, p, color, par, cycles, cyclenumber):
-    # already (completely) visited vertex.
     if color[u] == 2:
         yield
-
-    # seen vertex, but was not
-    # completely visited -> cycle detected.
-    # backtrack based on parents to
-    # find the complete cycle.
     if color[u] == 1:
         v = []
         cur = p
         v.append(cur)
-
-        # backtrack the vertex which are
-        # in the current cycle thats found
         while cur != u:
             cur = par[cur]
             v.append(cur)
@@ -61,18 +52,11 @@ def dfs_cycle(graph, u, p, color, par, cycles, cyclenumber):
         yield
 
     par[u] = p
-
-    # partially visited.
     color[u] = 1
-
-    # simple dfs on graph
     for v in graph[u]:
-        # if it has not been visited previously
         if v == par[u]:
             continue
         yield dfs_cycle(graph, v, u, color, par, cycles, cyclenumber)
-
-    # completely visited.
     color[u] = 2
     yield
 n = int(input())
@@ -281,6 +265,26 @@ def min_vertex_cover(left_v, right_v):
 leftv = {'a': [1, 3], 'c': [1, 3], 'd': [3, 6], 'h': [8], 'i': [8]}
 rightv = {1: ['a', 'c'], 3: ['a', 'c', 'd'], 6: ['d'], 8: ['h', 'i']}
 print(min_vertex_cover(leftv, rightv))
+
+
+# CONVEX HULL:
+def convex_hull(points):
+    points = sorted(points, key=lambda p: (p[0], p[1]))
+    if len(points) <= 1:
+        return points
+    def cross(o, a, b):
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+    lower = []
+    for p in points:
+        while len(lower) >= 2 and cross(lower[-2], lower[-1], p) < 0:
+            lower.pop()
+        lower.append((p[0], p[1]))
+    upper = []
+    for p in reversed(points):
+        while len(upper) >= 2 and cross(upper[-2], upper[-1], p) < 0:
+            upper.pop()
+        upper.append((p[0], p[1]))
+    return list(set(lower[:-1] + upper[:-1]))
 
 
 # ---------- BITS ----------
